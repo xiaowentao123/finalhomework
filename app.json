@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "travelogue-app",
-    "slug": "travelogue-app",
+    "name": "travel-log-app",
+    "slug": "travel-log-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "travelogueapp",
+    "scheme": "travellogapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -16,8 +16,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
-      "package": "com.xiaochengfozhong1.travelogueapp"
+      "edgeToEdgeEnabled": true
     },
     "web": {
       "bundler": "metro",
@@ -38,12 +37,6 @@
     ],
     "experiments": {
       "typedRoutes": true
-    },
-    "extra": {
-      "router": {},
-      "eas": {
-        "projectId": "da97fa61-b2a9-4b8f-9492-44833eff7bda"
-      }
     }
   }
 }
