@@ -12,7 +12,7 @@ export const TripCard: React.FC<TripCardProps> = ({ trip }) => {
 
   return (
     <Pressable
-      onPress={() => router.push(`/detail/${trip.id}`)}
+      onPress={() => router.push(`../detail/${trip.id}`)}
       className="bg-white rounded-lg shadow-md m-2 flex-1"
     >
       <Image

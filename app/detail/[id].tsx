@@ -1,7 +1,8 @@
 import React from 'react';
 import { Box, Image, Text, ScrollView } from '@gluestack-ui/themed';
-import { useTrip } from '../../hooks/useTrips';
+import { useTrip } from '@/hooks/useTrips';
 import { useLocalSearchParams } from 'expo-router';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 export default function Detail() {
   const { id } = useLocalSearchParams();

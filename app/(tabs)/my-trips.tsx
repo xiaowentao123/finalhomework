@@ -36,7 +36,7 @@ export default function MyTrips() {
         <TripForm
           initialValues={editingTrip}
           onSubmit={handleSubmit}
-        />
+        /> 
       )}
       <FlatList
         data={trips}

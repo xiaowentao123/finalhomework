@@ -1,11 +1,29 @@
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { fetchTrips, fetchTripById, createTrip, updateTrip, deleteTrip } from '@/lib/api';
-import { Trip } from '@/types';
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import {
+  fetchTrips,
+  fetchTripById,
+  createTrip,
+  updateTrip,
+  deleteTrip,
+} from "@/lib/api";
+import { Trip } from "@/types";
 
-export const useTrips = (query: string = '') => {
-  return useInfiniteQuery({
-    queryKey: ['trips', query],
+export const useTrips = (query: string = "") => {
+  return useInfiniteQuery<
+    { trips: Trip[] },
+    Error,
+    { trips: Trip[] },
+    [string, string],
+    number
+  >({
+    queryKey: ["trips", query],
     queryFn: ({ pageParam = 1 }) => fetchTrips(pageParam, 10, query),
+    initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) => {
       const nextPage = allPages.length + 1;
       return lastPage.trips.length === 10 ? nextPage : undefined;
@@ -15,7 +33,7 @@ export const useTrips = (query: string = '') => {
 
 export const useTrip = (id: string) => {
   return useQuery({
-    queryKey: ['trip', id],
+    queryKey: ["trip", id],
     queryFn: () => fetchTripById(id),
   });
 };
@@ -25,7 +43,7 @@ export const useCreateTrip = () => {
   return useMutation({
     mutationFn: createTrip,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trips'] });
+      queryClient.invalidateQueries({ queryKey: ["trips"] });
     },
   });
 };
@@ -33,9 +51,10 @@ export const useCreateTrip = () => {
 export const useUpdateTrip = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, trip }: { id: string; trip: Partial<Trip> }) => updateTrip(id, trip),
+    mutationFn: ({ id, trip }: { id: string; trip: Partial<Trip> }) =>
+      updateTrip(id, trip),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trips'] });
+      queryClient.invalidateQueries({ queryKey: ["trips"] });
     },
   });
 };
@@ -45,7 +64,7 @@ export const useDeleteTrip = () => {
   return useMutation({
     mutationFn: deleteTrip,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trips'] });
+      queryClient.invalidateQueries({ queryKey: ["trips"] });
     },
   });
 };
