@@ -1,7 +1,9 @@
 export interface Trip {
   id: string;
-  title: string;
-  content: string;
   image: string;
-  createdAt: string;
+  tag: string;
+  title: string;
+  description: string;
+  username: string;
+  time: string;
 }
