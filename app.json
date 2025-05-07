@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "travel-log-app",
-    "slug": "travel-log-app",
+    "name": "travel-diary-app",
+    "slug": "travel-diary-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "travellogapp",
+    "scheme": "traveldiaryapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
