@@ -1,58 +1,112 @@
 import "@/global.css";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
   FlatList,
+  RefreshControl,
   View,
   StyleSheet,
+  TouchableOpacity,
 } from "react-native";
-import { Box, Spinner, Text } from "@gluestack-ui/themed";
+import { Box, Input, InputField, Spinner, Text } from "@gluestack-ui/themed";
 import { useTrips } from "@/hooks/useTrips";
 import { TripCard } from "@/components/TripCard";
 import colors from "tailwindcss/colors";
 import { router, useNavigation } from "expo-router";
+import { useTheme } from "./settings"; // 导入 useTheme
+
 const { width: WINDOW_WIDTH } = Dimensions.get("window");
 
 export default function Home() {
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useTrips();
+  const { theme } = useTheme(); // 获取当前主题
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } = useTrips();
   const numColumns = 2;
   const trips = data?.pages.flatMap((page) => page.trips) || [];
   const filledTrips = [...trips];
   const remainder = trips.length % numColumns;
   const cardWidth = Math.min(WINDOW_WIDTH * 0.45, 320);
   const navigation = useNavigation();
+  const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [reachedBottom, setReachedBottom] = useState(false);
+
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", () => {
       // Fetch or refresh data here
     });
-
     return unsubscribe;
-  }, [router]);
+  }, [navigation]);
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  }, [refetch]);
+
+  const handleSearchPress = () => {
+    router.push("./search");
+  };
+
   if (remainder !== 0) {
     const placeholders = Array.from({ length: numColumns - remainder }).map(
       (_, i) => ({ id: `placeholder-${i}`, isPlaceholder: true })
     );
     filledTrips.push(...(placeholders as any));
   }
-  // console.log(data);
+
+  // 动态样式
+  const styles = StyleSheet.create({
+    bottomText: {
+      textAlign: "center",
+      padding: 16,
+      color: theme === "light" ? colors.gray[500] : colors.gray[300], // 文字颜色根据主题调整
+      fontSize: 16,
+    },
+    input: {
+      backgroundColor: theme === "light" ? "#f9f9f9" : "#444", // 输入框背景
+      borderColor: theme === "light" ? colors.gray[300] : colors.gray[600], // 边框颜色
+      color: theme === "light" ? colors.gray[900] : colors.white, // 文字颜色
+    },
+  });
+
   return (
     <Box
-      className="flex-1 p-4 bg-blue"
+      className="flex-1"
       style={{
+        backgroundColor: theme === "light" ? colors.white : "#333", // 动态背景色
         paddingLeft: 0,
         paddingRight: 0,
         paddingTop: 10,
         paddingBottom: 0,
       }}
     >
+      <Box className="px-4">
+        <TouchableOpacity onPress={handleSearchPress} activeOpacity={0.7}>
+          <Input
+            variant="outline"
+            className="mb-4"
+            isReadOnly
+            style={styles.input} // 应用动态输入框样式
+          >
+            <InputField
+              placeholder="Search trips..."
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              editable={false}
+              style={{
+                color: theme === "light" ? colors.gray[900] : colors.white, // 输入文字颜色
+                placeholderTextColor:
+                  theme === "light" ? colors.gray[400] : colors.gray[500], // 占位文字颜色
+              }}
+            />
+          </Input>
+        </TouchableOpacity>
+      </Box>
       <FlatList
         initialNumToRender={10}
         data={filledTrips}
         renderItem={({ item }) => {
-          // console.log("Render Trip:", item.id, item.title);
-          // console.log("Trip title debug", item.id, JSON.stringify(item.title));
-          // return <TripCard trip={item} />;
           if ((item as any).isPlaceholder) {
             return <View style={{ width: cardWidth, height: 0 }} />;
           }
@@ -60,32 +114,46 @@ export default function Home() {
         }}
         keyExtractor={(item, index) => `${item.id}-${index}`}
         numColumns={numColumns}
-        onEndReached={() =>
-          hasNextPage && !isFetchingNextPage && fetchNextPage()
-        }
+        onEndReached={() => {
+          if (hasNextPage && !isFetchingNextPage) {
+            fetchNextPage();
+          } else if (!hasNextPage) {
+            setReachedBottom(true);
+            setTimeout(() => setReachedBottom(false), 2000);
+          }
+        }}
         onEndReachedThreshold={0.5}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[theme === "light" ? colors.blue[500] : colors.blue[300]]} // 刷新指示器颜色
+            tintColor={theme === "light" ? colors.blue[500] : colors.blue[300]}
+          />
+        }
         ListFooterComponent={
-          isFetchingNextPage ? (
-            <Spinner size="large" color={colors.gray[500]} />
-          ) : null
+          <>
+            {isFetchingNextPage && (
+              <Spinner
+                size="large"
+                color={theme === "light" ? colors.gray[500] : colors.gray[300]} // 加载指示器颜色
+              />
+            )}
+            {reachedBottom && (
+              <Text style={styles.bottomText}>You've reached the bottom!</Text>
+            )}
+          </>
         }
         contentContainerStyle={{
           alignItems: "center",
-          paddingVertical: 0,
+          paddingVertical: 10,
         }}
         columnWrapperStyle={{
           justifyContent: "center",
           gap: 10,
-          // maxWidth: "50%",
         }}
+        showsVerticalScrollIndicator={false}
       />
     </Box>
   );
 }
-const styles = StyleSheet.create({
-  centered: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-});
