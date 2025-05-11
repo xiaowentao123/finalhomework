@@ -1,6 +1,12 @@
 import "@/global.css";
 import React, { useEffect } from "react";
-import { ActivityIndicator, Dimensions, FlatList, View } from "react-native";
+import {
+  ActivityIndicator,
+  Dimensions,
+  FlatList,
+  View,
+  StyleSheet,
+} from "react-native";
 import { Box, Spinner, Text } from "@gluestack-ui/themed";
 import { useTrips } from "@/hooks/useTrips";
 import { TripCard } from "@/components/TripCard";
@@ -76,3 +82,10 @@ export default function Home() {
     </Box>
   );
 }
+const styles = StyleSheet.create({
+  centered: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+});

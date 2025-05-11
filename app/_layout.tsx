@@ -10,6 +10,7 @@ export default function RootLayout() {
     <GluestackUIProvider config={config}>
       <QueryClientProvider client={queryClient}>
         <Stack>
+          <Stack.Screen name="Login" />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="+not-found" />
           <Stack.Screen
