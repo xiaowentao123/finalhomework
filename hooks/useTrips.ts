@@ -25,8 +25,8 @@ export const useTrips = (query: string = "") => {
     queryFn: ({ pageParam = 1 }) => fetchTrips(pageParam, 10, query),
     initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) => {
-      const nextPage = allPages.length + 1;
-      return lastPage.trips.length === 10 ? nextPage : undefined;
+      if (lastPage.trips.length < 10) return undefined;
+      return allPages.length + 1;
     },
   });
 };

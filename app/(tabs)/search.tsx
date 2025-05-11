@@ -12,7 +12,6 @@ export default function Search() {
 
   return (
     <Box className="flex-1 p-4">
-      <Text className="text-2xl font-bold mb-4">Search Trips</Text>
       <Input
         variant="outline"
         className="mb-4"
