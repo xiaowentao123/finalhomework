@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { View, Text, Switch, StyleSheet } from "react-native";
+import { View, Text, Switch, StyleSheet, TouchableOpacity } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/native";
 
 // 定义主题上下文类型
 type Theme = "light" | "dark";
@@ -50,7 +51,6 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
 
 // 钩住以使用主题
 export const useTheme = () => {
-  // 必须 export useTheme
   const context = useContext(ThemeContext);
   if (!context) {
     throw new Error("useTheme must be used within a ThemeProvider");
@@ -61,6 +61,22 @@ export const useTheme = () => {
 // 设置屏幕
 export default function Settings() {
   const { theme, toggleTheme } = useTheme();
+  const navigation = useNavigation();
+
+  const handleLogout = async () => {
+    try {
+      // Clear all AsyncStorage data
+      await AsyncStorage.clear();
+      // Navigate to Login screen
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Login" }],
+      });
+    } catch (error) {
+      console.error("登出失败：", error);
+    }
+  };
+
   const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -83,6 +99,18 @@ export default function Settings() {
       fontSize: 16,
       color: theme === "light" ? "#000" : "#fff",
     },
+    logoutButton: {
+      marginTop: 20,
+      padding: 12,
+      backgroundColor: theme === "light" ? "#ff4444" : "#cc0000",
+      borderRadius: 8,
+      alignItems: "center",
+    },
+    logoutButtonText: {
+      color: "#fff",
+      fontSize: 16,
+      fontWeight: "bold",
+    },
   });
 
   return (
@@ -97,6 +125,9 @@ export default function Settings() {
           thumbColor={theme === "dark" ? "#f4f3f4" : "#f4f3f4"}
         />
       </View>
+      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <Text style={styles.logoutButtonText}>登出</Text>
+      </TouchableOpacity>
     </View>
   );
 }
