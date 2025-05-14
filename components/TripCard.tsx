@@ -38,7 +38,7 @@ export const TripCard: React.FC<{ trip: Trip }> = ({ trip }) => {
   const imageWidth = cardWidth - 20 - 5;
 
   return (
-    <Pressable onPress={() => router.push(`/detail/${trip.id}`)}>
+    <Pressable onPress={() => router.push(`/detail/${trip._id}`)}>
       <Card
         className="rounded-lg max-w-[360px] m-0 mb-3"
         style={{
@@ -61,6 +61,7 @@ export const TripCard: React.FC<{ trip: Trip }> = ({ trip }) => {
             numberOfLines={2}
             style={{
               color: theme === "light" ? colors.gray[900] : colors.white,
+              minHeight: 45,
             }}
           >
             {trip.title || "（未命名行程）"}
@@ -84,12 +85,13 @@ export const TripCard: React.FC<{ trip: Trip }> = ({ trip }) => {
                   color: theme === "light" ? colors.gray[900] : colors.white,
                 }}
               >
-                uesrname
+                {trip.username}
               </Text>
               <Text
                 style={{
                   fontSize: 10,
-                  color: theme === "light" ? colors.gray[700] : colors.gray[200],
+                  color:
+                    theme === "light" ? colors.gray[700] : colors.gray[200],
                 }}
                 className="flex-1"
               >

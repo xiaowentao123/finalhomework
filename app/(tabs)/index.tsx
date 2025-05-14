@@ -15,12 +15,14 @@ import { TripCard } from "@/components/TripCard";
 import colors from "tailwindcss/colors";
 import { router, useNavigation } from "expo-router";
 import { useTheme } from "./settings"; // 导入 useTheme
+import { Stack } from "expo-router";
 
 const { width: WINDOW_WIDTH } = Dimensions.get("window");
 
 export default function Home() {
   const { theme } = useTheme(); // 获取当前主题
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } = useTrips();
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
+    useTrips("", undefined, "approved");
   const numColumns = 2;
   const trips = data?.pages.flatMap((page) => page.trips) || [];
   const filledTrips = [...trips];
@@ -31,12 +33,12 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [reachedBottom, setReachedBottom] = useState(false);
 
-  useEffect(() => {
-    const unsubscribe = navigation.addListener("focus", () => {
-      // Fetch or refresh data here
-    });
-    return unsubscribe;
-  }, [navigation]);
+  // useEffect(() => {
+  //   const unsubscribe = navigation.addListener("focus", () => {
+  //     // Fetch or refresh data here
+  //   });
+  //   return unsubscribe;
+  // }, [navigation]);
 
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
@@ -68,19 +70,28 @@ export default function Home() {
       borderColor: theme === "light" ? colors.gray[300] : colors.gray[600], // 边框颜色
       color: theme === "light" ? colors.gray[900] : colors.white, // 文字颜色
     },
+    container: {
+      flex: 1,
+      backgroundColor: theme === "light" ? colors.white : "#333", // 动态背景色
+      paddingLeft: 0,
+      paddingRight: 0,
+      paddingTop: 10,
+      paddingBottom: 0,
+    },
   });
 
   return (
-    <Box
-      className="flex-1"
-      style={{
-        backgroundColor: theme === "light" ? colors.white : "#333", // 动态背景色
-        paddingLeft: 0,
-        paddingRight: 0,
-        paddingTop: 10,
-        paddingBottom: 0,
-      }}
-    >
+    <View style={styles.container}>
+      <Stack.Screen
+        options={{
+          headerStyle: {
+            height: 60,
+          },
+          headerTitleStyle: {
+            fontSize: 18,
+          },
+        }}
+      />
       <Box className="px-4">
         <TouchableOpacity onPress={handleSearchPress} activeOpacity={0.7}>
           <Input
@@ -112,7 +123,7 @@ export default function Home() {
           }
           return <TripCard trip={item} />;
         }}
-        keyExtractor={(item, index) => `${item.id}-${index}`}
+        keyExtractor={(item, index) => `${item._id}-${index}`}
         numColumns={numColumns}
         onEndReached={() => {
           if (hasNextPage && !isFetchingNextPage) {
@@ -140,7 +151,7 @@ export default function Home() {
               />
             )}
             {reachedBottom && (
-              <Text style={styles.bottomText}>You've reached the bottom!</Text>
+              <Text style={styles.bottomText}>已经到底啦~</Text>
             )}
           </>
         }
@@ -154,6 +165,6 @@ export default function Home() {
         }}
         showsVerticalScrollIndicator={false}
       />
-    </Box>
+    </View>
   );
 }

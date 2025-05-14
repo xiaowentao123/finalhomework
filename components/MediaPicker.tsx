@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Image,
@@ -15,22 +15,36 @@ import {
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 import { Video } from "expo-av";
+import { ResizeMode } from "expo-av";
 
-interface MediaAsset {
+export interface MediaAsset {
+  file?: File;
   uri: string;
+  filename?: string;
   type: "image" | "video";
+  fileSize?: number;
 }
 
 interface MediaPickerProps {
   onChange: (assets: MediaAsset[]) => void;
+  value?: MediaAsset[];
 }
 
-const MediaPicker: React.FC<MediaPickerProps> = ({ onChange }) => {
-  const [selectedAssets, setSelectedAssets] = useState<MediaAsset[]>([]);
+const MediaPicker: React.FC<MediaPickerProps> = ({ onChange, value }) => {
+  const [selectedAssets, setSelectedAssets] = useState<MediaAsset[]>(
+    value || []
+  );
   const [preview, setPreview] = useState<{
     uri: string;
     type: "image" | "video";
   } | null>(null);
+
+  // 监听外部 value 变化，做同步
+  useEffect(() => {
+    if (value) {
+      setSelectedAssets(value);
+    }
+  }, [value]);
 
   const showToast = (msg: string) => {
     if (Platform.OS === "android") {
@@ -49,10 +63,13 @@ const MediaPicker: React.FC<MediaPickerProps> = ({ onChange }) => {
     if (!result.canceled) {
       const assets = result.assets.map((a: ImagePicker.ImagePickerAsset) => ({
         uri: a.uri,
+        file: a.file,
+        filename: a.fileName || undefined,
         type:
           a.type && a.type.startsWith("video")
             ? ("video" as const)
             : ("image" as const),
+        fileSize: a.fileSize,
       }));
       // 统计视频数量
       const videoCount =
@@ -75,12 +92,19 @@ const MediaPicker: React.FC<MediaPickerProps> = ({ onChange }) => {
     }
   };
 
+  const removeAsset = (uri: string) => {
+    const newAssets = selectedAssets.filter((asset) => asset.uri !== uri);
+    setSelectedAssets(newAssets);
+    onChange(newAssets);
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.row}
+        style={{ overflow: "visible" }}
       >
         <TouchableOpacity style={styles.uploadBox} onPress={pickMedia}>
           <Ionicons
@@ -118,6 +142,12 @@ const MediaPicker: React.FC<MediaPickerProps> = ({ onChange }) => {
                 />
               </View>
             )}
+            <TouchableOpacity
+              style={styles.removeButton}
+              onPress={() => removeAsset(asset.uri)}
+            >
+              <Ionicons name="close-circle" size={20} color="#fff" />
+            </TouchableOpacity>
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -152,7 +182,7 @@ const MediaPicker: React.FC<MediaPickerProps> = ({ onChange }) => {
                 source={{ uri: preview.uri }}
                 style={styles.fullImg}
                 useNativeControls
-                resizeMode="contain"
+                resizeMode={ResizeMode.CONTAIN}
                 shouldPlay
                 isLooping={false}
               />
@@ -218,6 +248,14 @@ const styles = StyleSheet.create({
     left: BOX_SIZE / 2 - 12,
     top: BOX_SIZE / 2 - 12,
     zIndex: 1,
+  },
+  removeButton: {
+    position: "absolute",
+    top: -8,
+    right: -8,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    borderRadius: 10,
+    zIndex: 9999,
   },
   // 预览弹窗样式
   modalBg: {

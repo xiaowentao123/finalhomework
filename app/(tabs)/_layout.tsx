@@ -22,15 +22,24 @@ const TabNavigator = () => {
         tabBarInactiveTintColor: theme === "light" ? "#888" : "#aaa", // 动态未激活颜色
         tabBarStyle: {
           backgroundColor: theme === "light" ? colors.white : "#333", // 动态 TabBar 背景
-          borderTopColor: theme === "light" ? colors.gray[200] : colors.gray[700], // 动态边框
+          borderTopColor:
+            theme === "light" ? colors.gray[200] : colors.gray[700], // 动态边框
+          height: 60,
         },
-        headerShown: false,
+        headerShown: true,
+        headerStyle: {
+          height: 60, // 设置 header 高度
+        },
+        headerTitleStyle: {
+          fontSize: 18,
+        },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
           tabBarLabel: "主页",
+          title: "",
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? "home-sharp" : "home-outline"}
@@ -44,6 +53,7 @@ const TabNavigator = () => {
         name="search"
         options={{
           tabBarLabel: "Search",
+          title: "",
           tabBarShowLabel: true,
           href: null,
           tabBarIcon: ({ color, focused }) => (
@@ -112,6 +122,7 @@ const TabNavigator = () => {
         name="my-trips"
         options={{
           tabBarLabel: "我的发布",
+          title: "",
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? "person" : "person-outline"}
@@ -125,6 +136,7 @@ const TabNavigator = () => {
         name="settings"
         options={{
           tabBarLabel: "设置",
+          title: "",
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? "settings" : "settings-outline"}

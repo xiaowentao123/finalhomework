@@ -1,0 +1,18 @@
+[
+    {
+        "title": "芙蓉镇游记-旅游攻略",
+        "content": "交通攻略很好玩非常值得去自驾游很适合",
+        "images": [
+            "https://picsum.photos/200/300?random=0",
+            "https://picsum.photos/200/300?random=1",
+            "https://picsum.photos/200/300?random=2"
+        ],
+        "video": null,
+        "authorId": "ObjectId('682034cf972df00939e9cbb5')",
+        "status": "approved",
+        "rejectReason": null,
+        "isDeleted": false,
+        "createdAt": "2025-05-11T02:50:23.000Z",
+        "updatedAt": "2025-05-11T02:50:23.000Z"
+    }
+]

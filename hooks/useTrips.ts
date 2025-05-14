@@ -13,7 +13,11 @@ import {
 } from "@/lib/api";
 import { Trip } from "@/types";
 
-export const useTrips = (query: string = "") => {
+export const useTrips = (
+  query: string = "",
+  authorId?: string,
+  status?: string
+) => {
   return useInfiniteQuery<
     { trips: Trip[] },
     Error,
@@ -22,7 +26,31 @@ export const useTrips = (query: string = "") => {
     number
   >({
     queryKey: ["trips", query],
-    queryFn: ({ pageParam = 1 }) => fetchTrips(pageParam, 10, query),
+    queryFn: ({ pageParam = 1 }) =>
+      fetchTrips(pageParam, 10, query, authorId, status),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) => {
+      if (lastPage.trips.length < 10) return undefined;
+      return allPages.length + 1;
+    },
+  });
+};
+
+export const useMyTrips = (
+  query: string = "",
+  authorId?: string,
+  status?: string
+) => {
+  return useInfiniteQuery<
+    { trips: Trip[] },
+    Error,
+    { trips: Trip[] },
+    [string, string],
+    number
+  >({
+    queryKey: ["my-trips", query],
+    queryFn: ({ pageParam = 1 }) =>
+      fetchTrips(pageParam, 10, query, authorId, status),
     initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) => {
       if (lastPage.trips.length < 10) return undefined;
@@ -54,7 +82,7 @@ export const useUpdateTrip = () => {
     mutationFn: ({ id, trip }: { id: string; trip: Partial<Trip> }) =>
       updateTrip(id, trip),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["trips"] });
+      queryClient.invalidateQueries({ queryKey: ["my-trips"] });
     },
   });
 };
@@ -64,7 +92,7 @@ export const useDeleteTrip = () => {
   return useMutation({
     mutationFn: deleteTrip,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["trips"] });
+      queryClient.invalidateQueries({ queryKey: ["my-trips"] });
     },
   });
 };

@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { FlatList, StyleSheet } from "react-native";
+import React, { useEffect, useState } from "react";
+import { FlatList, StyleSheet, Alert } from "react-native";
 import {
   Box,
   Text,
@@ -11,20 +11,24 @@ import {
   VStack,
   Image,
 } from "@gluestack-ui/themed";
-import {
-  useTrips,
-  useCreateTrip,
-  useUpdateTrip,
-  useDeleteTrip,
-} from "@/hooks/useTrips";
+import { useMyTrips, useCreateTrip, useUpdateTrip } from "@/hooks/useTrips";
 import { TripCard } from "@/components/TripCard";
 import { TripForm } from "@/components/TripForm";
 import { Trip } from "@/types";
 import colors from "tailwindcss/colors";
 import { useTheme } from "./settings"; // 导入 useTheme
+import { useNavigation, useRouter } from "expo-router";
+import { deleteTrip as apiDeleteTrip } from "@/lib/api";
 
-const MyTripsCard = ({ trip }: { trip: Trip }) => {
+const MyTripsCard = ({
+  trip,
+  onDelete,
+}: {
+  trip: Trip;
+  onDelete: (id: string) => void;
+}) => {
   const { theme } = useTheme(); // 获取当前主题
+  const router = useRouter(); // 新增
 
   // 动态样式
   const styles = StyleSheet.create({
@@ -38,7 +42,18 @@ const MyTripsCard = ({ trip }: { trip: Trip }) => {
       fontSize: 13,
     },
     buttonSolid: {
-      backgroundColor: theme === "light" ? "green" : "#2f855a", // 已通过按钮背景
+      backgroundColor:
+        trip.status === "approved"
+          ? theme === "light"
+            ? "green"
+            : colors.green[600]
+          : trip.status === "pedding"
+          ? theme === "light"
+            ? colors.yellow[500]
+            : colors.yellow[600]
+          : theme === "light"
+          ? colors.red[500]
+          : colors.red[600],
     },
     buttonOutline: {
       borderColor: theme === "light" ? colors.gray[300] : colors.gray[600], // 边框颜色
@@ -47,6 +62,36 @@ const MyTripsCard = ({ trip }: { trip: Trip }) => {
       color: theme === "light" ? colors.gray[900] : colors.white, // 按钮文字颜色
     },
   });
+
+  const getStatusText = () => {
+    switch (trip.status) {
+      case "approved":
+        return "已通过";
+      case "pedding":
+        return "待审核";
+      case "rejected":
+        return "未通过";
+      default:
+        return "未知状态";
+    }
+  };
+
+  const handleEdit = () => {
+    router.push({ pathname: "/publish", params: { id: trip._id } });
+  };
+
+  const handleDelete = () => {
+    Alert.alert("确认删除", "确定要删除该游记吗？删除后不可恢复。", [
+      { text: "取消", style: "cancel" },
+      {
+        text: "删除",
+        style: "destructive",
+        onPress: () => {
+          if (trip._id) onDelete(trip._id);
+        },
+      },
+    ]);
+  };
 
   return (
     <Card
@@ -85,13 +130,25 @@ const MyTripsCard = ({ trip }: { trip: Trip }) => {
         </HStack>
         <HStack space="sm" className="flex">
           <Button variant="solid" style={styles.buttonSolid} size="sm">
-            <ButtonText style={styles.buttonText}>已通过</ButtonText>
+            <ButtonText style={[styles.buttonText, { color: "white" }]}>
+              {getStatusText()}
+            </ButtonText>
           </Button>
           <HStack space="sm" className="justify-self-end ml-auto">
-            <Button variant="outline" style={styles.buttonOutline} size="sm">
+            <Button
+              variant="outline"
+              style={styles.buttonOutline}
+              size="sm"
+              onPress={handleDelete}
+            >
               <ButtonText style={styles.buttonText}>删除</ButtonText>
             </Button>
-            <Button variant="outline" style={styles.buttonOutline} size="sm">
+            <Button
+              variant="outline"
+              style={styles.buttonOutline}
+              size="sm"
+              onPress={handleEdit}
+            >
               <ButtonText style={styles.buttonText}>编辑</ButtonText>
             </Button>
           </HStack>
@@ -103,24 +160,49 @@ const MyTripsCard = ({ trip }: { trip: Trip }) => {
 
 export default function MyTrips() {
   const { theme } = useTheme(); // 获取当前主题
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useTrips();
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
+    useMyTrips("", undefined, undefined);
   const { mutate: createTrip } = useCreateTrip();
   const { mutate: updateTrip } = useUpdateTrip();
-  const { mutate: deleteTrip } = useDeleteTrip();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
+  const [refreshFlag, setRefreshFlag] = useState(0);
 
   const trips = data?.pages.flatMap((page) => page.trips) || []; // 修复语法错误
+  const navigation = useNavigation();
 
-  const handleSubmit = (values: Omit<Trip, "id" | "createdAt">) => {
-    if (editingTrip) {
-      updateTrip({ id: editingTrip.id, trip: values });
-    } else {
-      createTrip(values);
+  // const handleSubmit = (values: Omit<Trip, "id" | "createdAt">) => {
+  //   if (editingTrip) {
+  //     updateTrip({ id: editingTrip.id, trip: values });
+  //   } else {
+  //     createTrip(values);
+  //   }
+  //   setIsFormOpen(false);
+  //   setEditingTrip(null);
+  // };
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("focus", () => {
+      // Fetch or refresh data here
+    });
+    return unsubscribe;
+  }, [navigation]);
+
+  // 删除后刷新
+  const handleDelete = async (id: string) => {
+    try {
+      await apiDeleteTrip(id);
+      setRefreshFlag((f) => f + 1); // 触发刷新
+    } catch (e) {
+      Alert.alert("删除失败", "游记删除失败，请重试");
     }
-    setIsFormOpen(false);
-    setEditingTrip(null);
   };
+
+  useEffect(() => {
+    if (refreshFlag > 0) {
+      refetch();
+    }
+  }, [refreshFlag, refetch]);
 
   return (
     <Box
@@ -133,48 +215,11 @@ export default function MyTrips() {
       <FlatList
         data={trips}
         renderItem={({ item }) => (
-          <Box className="flex-row justify-between items-center">
-            <MyTripsCard trip={item} />
-            <Box className="flex-row">
-              <Button
-                size="sm"
-                onPress={() => {
-                  setEditingTrip(item);
-                  setIsFormOpen(true);
-                }}
-                className="mr-2"
-                style={{
-                  backgroundColor: theme === "light" ? colors.blue[500] : colors.blue[700], // 编辑按钮背景
-                }}
-              >
-                <ButtonText
-                  style={{
-                    color: colors.white, // 编辑按钮文字始终白色
-                  }}
-                >
-                  Edit
-                </ButtonText>
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onPress={() => deleteTrip(item.id)}
-                style={{
-                  borderColor: theme === "light" ? colors.gray[300] : colors.gray[600], // 删除按钮边框
-                }}
-              >
-                <ButtonText
-                  style={{
-                    color: theme === "light" ? colors.gray[900] : colors.white, // 删除按钮文字
-                  }}
-                >
-                  Delete
-                </ButtonText>
-              </Button>
-            </Box>
+          <Box className="flex-row justify-between items-center" key={item._id}>
+            <MyTripsCard trip={item} key={item._id} onDelete={handleDelete} />
           </Box>
         )}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item._id}
         numColumns={1}
         onEndReached={() =>
           hasNextPage && !isFetchingNextPage && fetchNextPage()

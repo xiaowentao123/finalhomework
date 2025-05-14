@@ -1,23 +1,38 @@
-import React, { useState, useEffect } from 'react';
-import { FlatList, Dimensions, StyleSheet, TouchableOpacity } from 'react-native';
-import { Box, Input, InputField, Spinner, Text } from '@gluestack-ui/themed';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useTrips } from '@/hooks/useTrips';
-import { TripCard } from '@/components/TripCard';
-import colors from 'tailwindcss/colors';
-import { useTheme } from './settings';
+import React, { useState, useEffect } from "react";
+import {
+  FlatList,
+  Dimensions,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { Box, Input, InputField, Spinner, Text } from "@gluestack-ui/themed";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useTrips } from "@/hooks/useTrips";
+import { TripCard } from "@/components/TripCard";
+import colors from "tailwindcss/colors";
+import { useTheme } from "./settings";
 
-const { width: WINDOW_WIDTH } = Dimensions.get('window');
-const SEARCH_HISTORY_KEY = '@search_history';
+const { width: WINDOW_WIDTH } = Dimensions.get("window");
+const SEARCH_HISTORY_KEY = "@search_history";
 
 export default function Search() {
   const { theme } = useTheme();
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useTrips(query);
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useTrips(query);
   const numColumns = 2;
-  const trips = data?.pages.flatMap(page => page.trips) || [];
+  const trips = data?.pages.flatMap((page) => page.trips) || [];
+  const remainder = trips.length % numColumns;
   const cardWidth = Math.min(WINDOW_WIDTH * 0.45, 320);
+  const filledTrips = [...trips];
+  if (remainder !== 0) {
+    const placeholders = Array.from({ length: numColumns - remainder }).map(
+      (_, i) => ({ id: `placeholder-${i}`, isPlaceholder: true })
+    );
+    filledTrips.push(...(placeholders as any));
+  }
 
   // Load search history from AsyncStorage when component mounts
   useEffect(() => {
@@ -28,7 +43,7 @@ export default function Search() {
           setSearchHistory(JSON.parse(history));
         }
       } catch (error) {
-        console.error('Failed to load search history:', error);
+        console.error("Failed to load search history:", error);
       }
     };
     loadSearchHistory();
@@ -40,12 +55,15 @@ export default function Search() {
     try {
       const updatedHistory = [
         newQuery,
-        ...searchHistory.filter(q => q !== newQuery).slice(0, 9), // Keep max 10 unique queries
+        ...searchHistory.filter((q) => q !== newQuery).slice(0, 9), // Keep max 10 unique queries
       ];
       setSearchHistory(updatedHistory);
-      await AsyncStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(updatedHistory));
+      await AsyncStorage.setItem(
+        SEARCH_HISTORY_KEY,
+        JSON.stringify(updatedHistory)
+      );
     } catch (error) {
-      console.error('Failed to save search history:', error);
+      console.error("Failed to save search history:", error);
     }
   };
 
@@ -67,42 +85,43 @@ export default function Search() {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: theme === 'light' ? colors.white : '#333',
+      backgroundColor: theme === "light" ? colors.white : "#333",
     },
     input: {
-      backgroundColor: theme === 'light' ? '#f9f9f9' : '#444',
-      borderColor: theme === 'light' ? colors.gray[300] : colors.gray[600],
+      backgroundColor: theme === "light" ? "#f9f9f9" : "#444",
+      borderColor: theme === "light" ? colors.gray[300] : colors.gray[600],
       borderWidth: 1,
       borderRadius: 8,
     },
     inputField: {
-      color: theme === 'light' ? colors.gray[900] : colors.white,
+      color: theme === "light" ? colors.gray[900] : colors.white,
     },
     placeholder: {
-      color: theme === 'light' ? colors.gray[400] : colors.gray[500],
+      color: theme === "light" ? colors.gray[400] : colors.gray[500],
     },
     messageText: {
       fontSize: 16,
-      color: theme === 'light' ? colors.gray[700] : colors.gray[200],
+      color: theme === "light" ? colors.gray[700] : colors.gray[200],
     },
     historyItem: {
       padding: 10,
       borderBottomWidth: 1,
-      borderBottomColor: theme === 'light' ? colors.gray[200] : colors.gray[600],
+      borderBottomColor:
+        theme === "light" ? colors.gray[200] : colors.gray[600],
     },
     historyText: {
       fontSize: 16,
-      color: theme === 'light' ? colors.gray[900] : colors.gray[200],
+      color: theme === "light" ? colors.gray[900] : colors.gray[200],
     },
     spinner: {
-      color: theme === 'light' ? colors.gray[500] : colors.gray[300],
+      color: theme === "light" ? colors.gray[500] : colors.gray[300],
     },
     flatListContent: {
-      alignItems: 'center',
+      alignItems: "center",
       paddingVertical: 10,
     },
     columnWrapper: {
-      justifyContent: 'center',
+      justifyContent: "center",
       gap: 10,
     },
   });
@@ -118,7 +137,7 @@ export default function Search() {
           placeholderTextColor={styles.placeholder.color}
         />
       </Input>
-      {query.trim() === '' ? (
+      {query.trim() === "" ? (
         searchHistory.length > 0 ? (
           <Box className="flex-1">
             <Text style={styles.messageText} className="mb-2">
@@ -140,7 +159,9 @@ export default function Search() {
           </Box>
         ) : (
           <Box className="flex-1 justify-center items-center">
-            <Text style={styles.messageText}>Enter a search query to find trips</Text>
+            <Text style={styles.messageText}>
+              Enter a search query to find trips
+            </Text>
           </Box>
         )
       ) : trips.length === 0 && !isFetchingNextPage ? (
@@ -149,11 +170,18 @@ export default function Search() {
         </Box>
       ) : (
         <FlatList
-          data={trips}
-          renderItem={({ item }) => <TripCard trip={item} />}
-          keyExtractor={item => item.id}
+          data={filledTrips}
+          renderItem={({ item }) => {
+            if ((item as any).isPlaceholder) {
+              return <View style={{ width: cardWidth, height: 0 }} />;
+            }
+            return <TripCard trip={item} />;
+          }}
+          keyExtractor={(item) => item._id}
           numColumns={numColumns}
-          onEndReached={() => hasNextPage && !isFetchingNextPage && fetchNextPage()}
+          onEndReached={() =>
+            hasNextPage && !isFetchingNextPage && fetchNextPage()
+          }
           onEndReachedThreshold={0.5}
           ListFooterComponent={
             isFetchingNextPage ? (

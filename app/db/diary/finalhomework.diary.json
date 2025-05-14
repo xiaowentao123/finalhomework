@@ -1,0 +1,49 @@
+[{
+  "_id": {
+    "$oid": "682037c0972df00939e9cbb9"
+  },
+  "title": "芙蓉镇游记-旅游攻略",
+  "content": "交通攻略很好玩非常值得去自驾游很适合",
+  "images": [
+    "https://picsum.photos/200/300?random=0",
+    "https://picsum.photos/200/300?random=1",
+    "https://picsum.photos/200/300?random=2"
+  ],
+  "video": null,
+  "authorId": {
+    "$oid": "682034cf972df00939e9cbb5"
+  },
+  "status": "approved",
+  "rejectReason": null,
+  "isDeleted": false,
+  "createdAt": {
+    "$date": "2025-05-11T02:50:23.000Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-11T02:50:23.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68205de4e9ec83e70fbc2f1a"
+  },
+  "title": "我的旅行日记",
+  "content": "这是我在旅行中的一些经历和感受。",
+  "images": [
+    "https://picsum.photos/200/300?random=0"
+  ],
+  "video": null,
+  "authorId": {
+    "$oid": "682034cf972df00939e9cbb5"
+  },
+  "status": "pedding",
+  "rejectReason": null,
+  "createdAt": {
+    "$date": "2025-05-11T08:20:52.582Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-11T08:20:52.582Z"
+  },
+  "isDeleted": false,
+  "__v": 0
+}]

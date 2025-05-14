@@ -1,6 +1,12 @@
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
-import React, { useState } from "react";
+import {
+  useToast,
+  Toast,
+  ToastTitle,
+  ToastDescription,
+} from "@gluestack-ui/themed";
+import React, { useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -11,6 +17,7 @@ import {
 } from "react-native";
 import { RootStackParamList } from "@/types/types"; // 注意确保路径正确
 import { router } from "expo-router";
+import { login } from "@/lib/api";
 
 // 定义 navigation 类型
 type LoginScreenNavigationProp = StackNavigationProp<
@@ -20,13 +27,58 @@ type LoginScreenNavigationProp = StackNavigationProp<
 
 const Login = () => {
   const navigation = useNavigation<LoginScreenNavigationProp>();
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [isUsernameInvalid, setIsUsernameInvalid] = useState(false);
+  const [isPasswordInvalid, setIsPasswordInvalid] = useState(false);
+  const toast = useToast();
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     // 暂时不处理登录逻辑，直接跳转 Home 页面
-    router.push("/");
-    // navigation.navigate("Home");
+    let usernameInvalid = false;
+    let passwordInvalid = false;
+    if (username.length <= 0) {
+      setIsUsernameInvalid(true);
+      usernameInvalid = true;
+    } else {
+      setIsUsernameInvalid(false);
+      usernameInvalid = false;
+    }
+    if (password.length <= 0) {
+      setIsPasswordInvalid(true);
+      passwordInvalid = true;
+    } else {
+      setIsPasswordInvalid(false);
+      passwordInvalid = false;
+    }
+    if (usernameInvalid || passwordInvalid) {
+      return;
+    }
+    // router.push("/");
+    const res = await login(username, password);
+    if (res) {
+      router.push("/");
+    } else {
+      toast.show({
+        id: Math.random().toString(),
+        placement: "top",
+        duration: 3000,
+        containerStyle: {
+          position: "relative",
+          // backgroundColor: "red",
+          top: 30,
+        },
+        render: ({ id }) => {
+          const uniqueToastId = "toast-" + id;
+          return (
+            <Toast nativeID={uniqueToastId} action="error" variant="solid">
+              <ToastDescription>账号或密码错误</ToastDescription>
+            </Toast>
+          );
+        },
+      });
+      console.log("账号或密码错误");
+    }
   };
 
   return (
@@ -38,12 +90,15 @@ const Login = () => {
 
       <TextInput
         style={styles.input}
-        placeholder="邮箱"
+        placeholder="用户名"
         placeholderTextColor="#aaa"
-        keyboardType="email-address"
-        value={email}
-        onChangeText={setEmail}
+        value={username}
+        onChangeText={setUsername}
+        onBlur={() => setIsUsernameInvalid(username.length <= 0)}
       />
+      {isUsernameInvalid && (
+        <Text style={{ color: "red", marginTop: -15 }}>用户名不能为空</Text>
+      )}
 
       <TextInput
         style={styles.input}
@@ -52,7 +107,11 @@ const Login = () => {
         secureTextEntry
         value={password}
         onChangeText={setPassword}
+        onBlur={() => setIsPasswordInvalid(password.length <= 0)}
       />
+      {isPasswordInvalid && (
+        <Text style={{ color: "red", marginTop: -15 }}>密码不能为空</Text>
+      )}
 
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
         <Text style={styles.buttonText}>登录</Text>
