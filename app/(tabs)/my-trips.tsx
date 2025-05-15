@@ -36,6 +36,8 @@ const MyTripsCard = ({
       color: theme === "light" ? colors.gray[900] : colors.white, // 标题文字颜色
       fontSize: 16,
       fontWeight: "bold",
+      width: 170,
+      textOverflow: "ellipsis",
     },
     content: {
       color: theme === "light" ? colors.gray[600] : colors.gray[300], // 内容文字颜色

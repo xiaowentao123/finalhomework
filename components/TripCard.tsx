@@ -34,7 +34,7 @@ export const TripCard: React.FC<{ trip: Trip }> = ({ trip }) => {
   const router = useRouter();
   const { theme } = useTheme();
 
-  const cardWidth = Math.min(WINDOW_WIDTH * 0.45, 320);
+  const cardWidth = Math.min(WINDOW_WIDTH * 0.46, 320);
   const imageWidth = cardWidth - 20 - 5;
 
   return (
@@ -43,7 +43,9 @@ export const TripCard: React.FC<{ trip: Trip }> = ({ trip }) => {
         className="rounded-lg max-w-[360px] m-0 mb-3"
         style={{
           padding: 0,
-          width: cardWidth,
+          marginLeft: 5,
+          marginRight: 5,
+          // width: cardWidth,
           backgroundColor: theme === "light" ? colors.white : "#333",
         }}
       >
@@ -61,7 +63,7 @@ export const TripCard: React.FC<{ trip: Trip }> = ({ trip }) => {
             numberOfLines={2}
             style={{
               color: theme === "light" ? colors.gray[900] : colors.white,
-              minHeight: 45,
+              // minHeight: 45,
             }}
           >
             {trip.title || "（未命名行程）"}

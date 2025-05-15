@@ -9,6 +9,7 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from "react-native";
+import MasonryList from "@react-native-seoul/masonry-list";
 import { Box, Input, InputField, Spinner, Text } from "@gluestack-ui/themed";
 import { useTrips } from "@/hooks/useTrips";
 import { TripCard } from "@/components/TripCard";
@@ -16,6 +17,7 @@ import colors from "tailwindcss/colors";
 import { router, useNavigation } from "expo-router";
 import { useTheme } from "./settings"; // 导入 useTheme
 import { Stack } from "expo-router";
+import { Trip } from "@/types";
 
 const { width: WINDOW_WIDTH } = Dimensions.get("window");
 
@@ -114,14 +116,13 @@ export default function Home() {
           </Input>
         </TouchableOpacity>
       </Box>
-      <FlatList
-        initialNumToRender={10}
-        data={filledTrips}
-        renderItem={({ item }) => {
+      <MasonryList
+        data={trips}
+        renderItem={({ item, i }: { item: unknown; i: number }) => {
           if ((item as any).isPlaceholder) {
             return <View style={{ width: cardWidth, height: 0 }} />;
           }
-          return <TripCard trip={item} />;
+          return <TripCard trip={item as Trip} />;
         }}
         keyExtractor={(item, index) => `${item._id}-${index}`}
         numColumns={numColumns}
@@ -134,14 +135,16 @@ export default function Home() {
           }
         }}
         onEndReachedThreshold={0.5}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={[theme === "light" ? colors.blue[500] : colors.blue[300]]} // 刷新指示器颜色
-            tintColor={theme === "light" ? colors.blue[500] : colors.blue[300]}
-          />
-        }
+        // refreshControl={
+        //   <RefreshControl
+        //     refreshing={refreshing}
+        //     onRefresh={onRefresh}
+        //     colors={[theme === "light" ? colors.blue[500] : colors.blue[300]]} // 刷新指示器颜色
+        //     tintColor={theme === "light" ? colors.blue[500] : colors.blue[300]}
+        //   />
+        // }
+        refreshing={refreshing}
+        onRefresh={onRefresh}
         ListFooterComponent={
           <>
             {isFetchingNextPage && (
@@ -156,13 +159,19 @@ export default function Home() {
           </>
         }
         contentContainerStyle={{
-          alignItems: "center",
-          paddingVertical: 10,
+          alignSelf: "stretch",
+          // width: "95%",
+          paddingHorizontal: 5,
+          // paddingVertical: 10,
         }}
-        columnWrapperStyle={{
-          justifyContent: "center",
-          gap: 10,
-        }}
+        // containerStyle={{
+        //   // backgroundColor: "red",
+        //   paddingVertical: 0,
+        // }}
+        // columnWrapperStyle={{
+        //   justifyContent: "center",
+        //   gap: 10,
+        // }}
         showsVerticalScrollIndicator={false}
       />
     </View>

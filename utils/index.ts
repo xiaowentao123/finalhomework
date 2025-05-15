@@ -46,7 +46,7 @@ export async function uint8ArrayToFormFile(
   await FileSystem.writeAsStringAsync(fileUri, base64, {
     encoding: FileSystem.EncodingType.Base64,
   });
-  console.log("uint8ArrayToFormFile", filename);
+  console.log("uint8ArrayToFormFile", filename, fileUri);
   return {
     uri: Platform.OS === "android" ? fileUri : fileUri.replace("file://", ""),
     name: filename,
