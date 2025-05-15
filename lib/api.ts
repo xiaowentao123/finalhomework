@@ -188,7 +188,7 @@ export const uploadChunk = async (
   formData.append("fileHash", fileHash);
   formData.append("chunkIndex", chunkIndex.toString());
   // console.log("formData", formData);
-  console.log("uploadChunk", formData.get("file"));
+  // console.log("uploadChunk", formData.get("file"));
   const response = await request.post<any, UploadFileResponse<any>>(
     "/upload/upload-chunk",
     formData,
@@ -198,6 +198,7 @@ export const uploadChunk = async (
       },
     }
   );
+  console.log("uploadChunk response", response, chunkIndex);
   return response;
 };
 

@@ -10,7 +10,7 @@ import config from "@/config";
 // 创建 axios 实例
 const instance = axios.create({
   baseURL: config.api.baseURL, // 使用配置文件中的 baseURL
-  timeout: 5000,
+  timeout: 10000,
 });
 
 // 请求拦截器
